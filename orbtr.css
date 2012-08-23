@@ -1,7 +1,16 @@
-canvas {
-    width: 500px;
-    height: 500px;
+html {
+    height: 80%;
+    
+}
+
+body { 
+    height: 100% 
+}
+#container {
     background: #ffe;
     margin: 25px;
     border: 1px solid #666;
+    height: 100%;
 }
+
+

@@ -1,3 +1,5 @@
+AU = 149597870700
+
 class Vec
   constructor: (@x, @y, @z) ->
 
@@ -49,48 +51,98 @@ data = [
  ,
   name: 'earth'
   m: 6.0 * Math.pow(10, 24)
-  v: new Vec(0, 30*Math.pow(10, 3), 0)
-  o: new Vec(149*Math.pow(10, 9), 0, 0)
-  size: 10
+  v: new Vec(0, 30000, 0)
+  o: new Vec(AU, 0, 0)
+  size: 15
 ,
-  name: 'earth'
+  name: 'mars'
+  m: 6.4 * Math.pow(10, 24)
+  v: new Vec(0, 24000, 0)
+  o: new Vec(1.53*AU, 0, 0)
+  size: 15
+,
+  name: 'jupiter'
   m: 6.0 * Math.pow(10, 24)
-  v: new Vec(0, 30*Math.pow(10, 3), 0)
-  o: new Vec(152*Math.pow(10, 9), 0, 0)
-  size: 10
-,
-  name: 'earth'
-  m: 6.0 * Math.pow(10, 24)
-  v: new Vec(0, 30*Math.pow(10, 3), 0)
-  o: new Vec(155*Math.pow(10, 9), 0, 0)
-  size: 10
-,
-  name: 'earth'
-  m: 6.0 * Math.pow(10, 27)
-  v: new Vec(0, -30*Math.pow(10, 3), 0)
-  o: new Vec(-159*Math.pow(10, 9), 0, 0)
+  v: new Vec(0, 13000, 0)
+  o: new Vec(5.5 * AU, 0, 0)
   size: 25
+,
+  name:  'comet'
+  m: 50000
+  v: new Vec(42000, 41000, 0)
+  o: new Vec(AU*0.44, 0, 0)
+  size: 5
+,
+  name:  'comet'
+  m: 50000
+  v: new Vec(42000, 42000, 0)
+  o: new Vec(AU*0.43, 0, 0)
+  size: 5
+,
+  name:  'comet'
+  m: 50000
+  v: new Vec(42000, 43000, 0)
+  o: new Vec(AU*0.42, 0, 0)
+  size: 5
+,
+  name:  'comet'
+  m: 50000
+  v: new Vec(42000, 44000, 0)
+  o: new Vec(AU*0.41, 0, 0)
+  size: 5
+,
+  name:  'comet'
+  m: 50000
+  v: new Vec(42000, 45000, 0)
+  o: new Vec(AU*0.40, 0, 0)
+  size: 5
+,
+  name:  'comet'
+  m: 50000
+  v: new Vec(42000, 46000, 0)
+  o: new Vec(AU*0.39, 0, 0)
+  size: 5
+,
+  name:  'comet'
+  m: 50000
+  v: new Vec(42000, 47000, 0)
+  o: new Vec(AU*0.38, 0, 0)
+  size: 5
+,
+  name:  'big comet'
+  m: 5000000
+  v: new Vec(-5000, 27000, 0)
+  o: new Vec(AU*1.38, 0, 0)
+  size: 8
 ,
   name: 'moon'
   m: 7.3 * Math.pow(10, 22)
-  v: new Vec(0, 30*Math.pow(10, 3) + 1000, 0)
-  o: new Vec(149*Math.pow(10, 9) + 385000000, 0, 0)
-  size: 5
+  v: new Vec(0, 30000 + 1000, 0)
+  o: new Vec(AU + 385000000, 0, 0)
+  size: 6
 ,
 ]
 
 class Orbiter
-  constructor: (@context) ->
+  constructor: (canvas, @div) ->
     @objects = data
     @running = false
     @img = new Image()
     @img.src = 'planet.png'
     @time = 60*60 * 5 # seconds in day
     @sleep = 20
-    @ticks = 10
+    @ticks = 20
     @total = 0
     @G = 6.674 * Math.pow(10, -11)
-    @context.font = "12pt Arial"
+    @canvas =
+      el: canvas
+      scale: 2*AU
+    @context = canvas.getContext('2d')
+
+    $(window).resize =>
+      @canvas.el.width = div.width()
+      @canvas.el.height = div.height()
+    $(window).resize()
 
   calculate: ->
     # calc all acting forces for all objects
@@ -146,22 +198,71 @@ class Orbiter
     else
       @running = false
 
-  draw: =>
-    scale = Math.pow(10, 11) * 2
-    convert1 = (x) ->
-      ((x / scale) + 1) * 250
-    convert2 = (x, y) ->
-      [convert1(x), convert1(y)]
+  convert: (x, y) ->
+    s = @canvas.scale or AU
+    s *= 1.1
+    factor = Math.min(@canvas.el.width, @canvas.el.height)
+    s  /= factor
+    [
+      x / s + @canvas.el.width * 0.5
+      y / s + @canvas.el.height * 0.5
+    ]
 
-    $('canvas')[0].width = $('canvas')[0].width
+  scale_canvas: (r) ->
+    up_smooth = 0.95
+    down_smooth = 0.98
+    scale = Math.sqrt(r) * 2
+
+    if @canvas.scale is 0
+      @canvas.scale = scale
+    else
+      if scale > @canvas.scale
+        smooth = up_smooth
+      else
+        smooth = down_smooth
+
+      @canvas.scale = @canvas.scale * smooth  + scale * (1-smooth)
+
+    $('#status-2').html "Scale: #{@canvas.scale / AU} AU"
+
+  draw: =>
+    @context.clearRect(0, 0, @canvas.el.width, @canvas.el.height)
     $('#status').html "#{@ticks} iterations per draw, #{@time / 3600} hours per iteration, #{1000 / @sleep} fps - running for #{@total / (3600*24*365)} years."
 
+    radius = 0
+    [x, y] = @convert 0, 0 # get center
+    [r, _] = @convert AU, AU
+
+    r -= x
+    @context.strokeStyle = "#ddc"
+    @context.font = "16pt arial"
+    for each in [1, 5, 10, 50]
+      @context.beginPath()
+      @context.arc x, y, r * each, 0, Math.PI * 2, false
+      @context.closePath()
+      @context.stroke()
+
+      @context.fillText "#{each} AU", x-20, y-r * each + 40
+
+    @context.font = "12pt arial"
     for target in @objects
-      coords = convert2(target.o.x, target.o.y)
-      @context.drawImage(@img, coords[0] - target.size / 2, coords[1] - target.size / 2, target.size, target.size)
+      [x, y] = [target.o.x, target.o.y]
+      radius = Math.max(radius, x*x + y*y) if not target.no_scale
+
+      [x, y] = @convert(x, y)
+      @context.drawImage(
+          @img
+          x - target.size / 2
+          y - target.size / 2
+          target.size
+          target.size
+      )
+      @context.fillText target.name, x-25, y-10 if target.size > 5
+
+    @scale_canvas radius
 
 $ ->
-  orbiter = new Orbiter $('canvas')[0].getContext('2d')
+  orbiter = new Orbiter $('canvas')[0], $('#container')
   orbiter.start()
   $('canvas').click (e) ->
     orbiter.toggle(e)
