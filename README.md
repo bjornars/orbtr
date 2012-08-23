@@ -1,5 +1,10 @@
-Orbtr.js :: HTML5 project for simulating interaction in particle systems
-========================================================================
+Orbtr.js :: Simulating interaction in particle systems
+======================================================
+
+Description
+-----------
+
+`Orbtr.js` is a HTML5 project for simulating interaction in particle systems.
 
 Installation
 ------------
@@ -17,3 +22,7 @@ Installation
  * Install orbtr.js dependencies:
 
      `jam install`
+
+ * Serve files using a development webserver:
+
+     `python -m SimpleHTTPServer`
