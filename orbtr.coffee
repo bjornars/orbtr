@@ -1,268 +1,186 @@
-AU = 149597870700
+define ->
+  exports = {}
 
-class Vec
-  constructor: (@x, @y, @z) ->
+  AU = exports.AU = 149597870700
 
-  iadd: (v)  ->
-    @x += v.x
-    @y += v.y
-    @z += v.z
+  Vec = class exports.Vec
+    constructor: (@x, @y, @z) ->
 
-  sub: (v)  ->
-    new Vec(
-      @x - v.x
-      @y - v.y
-      @z - v.z
-    )
+    iadd: (v)  ->
+      @x += v.x
+      @y += v.y
+      @z += v.z
 
-  imul: (v)  ->
-    @x *= v
-    @y *= v
-    @z *= v
+    sub: (v)  ->
+      new Vec(
+        @x - v.x
+        @y - v.y
+        @z - v.z
+      )
 
-  mul: (v)  ->
-    new Vec(
-      @x * v
-      @y * v
-      @z * v
-    )
+    imul: (v)  ->
+      @x *= v
+      @y *= v
+      @z *= v
 
-  neg: ->
-    new Vec(-@x, -@y, -@z)
+    mul: (v)  ->
+      new Vec(
+        @x * v
+        @y * v
+        @z * v
+      )
 
-  len: ->
-    Math.sqrt(@x * @x + @y * @y + @z * @z)
+    neg: ->
+      new Vec(-@x, -@y, -@z)
 
-  inormalize: ->
-    len = @len()
-    @x /= len
-    @y /= len
-    @z /= len
+    len: ->
+      Math.sqrt(@x * @x + @y * @y + @z * @z)
 
-  str: ->
-    "Vec(#{@x}, #{@y}, #{@z})"
+    inormalize: ->
+      len = @len()
+      @x /= len
+      @y /= len
+      @z /= len
 
-data = [
-   name: 'sun'
-   m: 2.0 * Math.pow(10, 30)
-   v: new Vec(0, 0, 0)
-   o: new Vec(0, 0, 0)
-   size: 50
- ,
-  name: 'earth'
-  m: 6.0 * Math.pow(10, 24)
-  v: new Vec(0, 30000, 0)
-  o: new Vec(AU, 0, 0)
-  size: 15
-,
-  name: 'mars'
-  m: 6.4 * Math.pow(10, 24)
-  v: new Vec(0, 24000, 0)
-  o: new Vec(1.53*AU, 0, 0)
-  size: 15
-,
-  name: 'jupiter'
-  m: 6.0 * Math.pow(10, 24)
-  v: new Vec(0, 13000, 0)
-  o: new Vec(5.5 * AU, 0, 0)
-  size: 25
-,
-  name:  'comet'
-  m: 50000
-  v: new Vec(42000, 41000, 0)
-  o: new Vec(AU*0.44, 0, 0)
-  size: 5
-,
-  name:  'comet'
-  m: 50000
-  v: new Vec(42000, 42000, 0)
-  o: new Vec(AU*0.43, 0, 0)
-  size: 5
-,
-  name:  'comet'
-  m: 50000
-  v: new Vec(42000, 43000, 0)
-  o: new Vec(AU*0.42, 0, 0)
-  size: 5
-,
-  name:  'comet'
-  m: 50000
-  v: new Vec(42000, 44000, 0)
-  o: new Vec(AU*0.41, 0, 0)
-  size: 5
-,
-  name:  'comet'
-  m: 50000
-  v: new Vec(42000, 45000, 0)
-  o: new Vec(AU*0.40, 0, 0)
-  size: 5
-,
-  name:  'comet'
-  m: 50000
-  v: new Vec(42000, 46000, 0)
-  o: new Vec(AU*0.39, 0, 0)
-  size: 5
-,
-  name:  'comet'
-  m: 50000
-  v: new Vec(42000, 47000, 0)
-  o: new Vec(AU*0.38, 0, 0)
-  size: 5
-,
-  name:  'big comet'
-  m: 5000000
-  v: new Vec(-5000, 27000, 0)
-  o: new Vec(AU*1.38, 0, 0)
-  size: 8
-,
-  name: 'moon'
-  m: 7.3 * Math.pow(10, 22)
-  v: new Vec(0, 30000 + 1000, 0)
-  o: new Vec(AU + 385000000, 0, 0)
-  size: 6
-,
-]
+    str: ->
+      "Vec(#{@x}, #{@y}, #{@z})"
 
-class Orbiter
-  constructor: (canvas, @div) ->
-    @objects = data
-    @running = false
-    @img = new Image()
-    @img.src = 'planet.png'
-    @time = 60*60 * 5 # seconds in day
-    @sleep = 20
-    @ticks = 20
-    @total = 0
-    @G = 6.674 * Math.pow(10, -11)
-    @canvas =
-      el: canvas
-      scale: 2*AU
-    @context = canvas.getContext('2d')
 
-    $(window).resize =>
-      @canvas.el.width = div.width()
-      @canvas.el.height = div.height()
-    $(window).resize()
+  class exports.Orbiter
+    constructor: (canvas, @div, @objects) ->
+      @running = false
+      @img = new Image()
+      @img.src = 'planet.png'
+      @time = 60*60 * 5 # seconds in day
+      @sleep = 20
+      @ticks = 20
+      @total = 0
+      @G = 6.674 * Math.pow(10, -11)
+      @canvas =
+        el: canvas
+        scale: 2*AU
+      @context = canvas.getContext('2d')
 
-  calculate: ->
-    # calc all acting forces for all objects
-    for target in @objects
-      fs = new Vec(0, 0, 0)
-      for source in @objects
-        if target isnt source
+      $(window).resize =>
+        @canvas.el.width = div.width()
+        @canvas.el.height = div.height()
+      $(window).resize()
 
-          r = source.o.sub(target.o)
-          r_len = r.len()
-          r_len2 = r_len * r_len
-          f_mag = @G * target.m * source.m / r_len2
-          f_dir = r.mul(f_mag / r_len)
-          if not f_mag is f_dir.len()
-            console.log ['BORK', f_mag, f_dir.len()]
-          # console.log "#{target.name} - #{source.name} is #{r_len}m away, giving #{f_mag}N of force"
-          fs.iadd(f_dir)
+    calculate: ->
+      # calc all acting forces for all objects
+      for target in @objects
+        fs = new Vec(0, 0, 0)
+        for source in @objects
+          if target isnt source
 
-      target.pending = fs
+            r = source.o.sub(target.o)
+            r_len = r.len()
+            r_len2 = r_len * r_len
+            f_mag = @G * target.m * source.m / r_len2
+            f_dir = r.mul(f_mag / r_len)
+            if not f_mag is f_dir.len()
+              console.log ['BORK', f_mag, f_dir.len()]
+            # console.log "#{target.name} - #{source.name} is #{r_len}m away, giving #{f_mag}N of force"
+            fs.iadd(f_dir)
 
-    for target in @objects
-      # apply impulses
-      new_v = target.pending.mul(@time / target.m)
-      # console.log "#{target.name} - poking #{target.m}kg with #{target.pending.len()}N over #{@time}s, increasing v with #{new_v.len()}"
-      target.v.iadd(new_v)
+        target.pending = fs
 
-      # apply velocity
-      # console.log "#{target.name} - moving by #{target.v.str()} over #{@time}"
-      target.o.iadd(target.v.mul(@time))
-    @total += @time
+      for target in @objects
+        # apply impulses
+        new_v = target.pending.mul(@time / target.m)
+        # console.log "#{target.name} - poking #{target.m}kg with #{target.pending.len()}N over #{@time}s, increasing v with #{new_v.len()}"
+        target.v.iadd(new_v)
 
-  tick: (number) ->
-    while number--
-      @calculate()
-    null
+        # apply velocity
+        # console.log "#{target.name} - moving by #{target.v.str()} over #{@time}"
+        target.o.iadd(target.v.mul(@time))
+      @total += @time
 
-  start: =>
-    @tick @ticks
-    @draw()
-    setTimeout(@start, @sleep) if @running
+    tick: (number) ->
+      while number--
+        @calculate()
+      null
 
-  stop: ->
-    @running = false
-
-  toggle: (e)->
-    if e.button == 1
-      @tick 1
+    start: =>
+      @tick @ticks
       @draw()
+      setTimeout(@start, @sleep) if @running
 
-    else if not @running
-      @running = true
-      @start()
-    else
+    stop: ->
       @running = false
 
-  convert: (x, y) ->
-    s = @canvas.scale or AU
-    s *= 1.1
-    factor = Math.min(@canvas.el.width, @canvas.el.height)
-    s  /= factor
-    [
-      x / s + @canvas.el.width * 0.5
-      y / s + @canvas.el.height * 0.5
-    ]
+    toggle: (e)->
+      if e.button == 1
+        @tick 1
+        @draw()
 
-  scale_canvas: (r) ->
-    up_smooth = 0.95
-    down_smooth = 0.98
-    scale = Math.sqrt(r) * 2
-
-    if @canvas.scale is 0
-      @canvas.scale = scale
-    else
-      if scale > @canvas.scale
-        smooth = up_smooth
+      else if not @running
+        @running = true
+        @start()
       else
-        smooth = down_smooth
+        @running = false
 
-      @canvas.scale = @canvas.scale * smooth  + scale * (1-smooth)
+    convert: (x, y) ->
+      s = @canvas.scale or AU
+      s *= 1.1
+      factor = Math.min(@canvas.el.width, @canvas.el.height)
+      s  /= factor
+      [
+        x / s + @canvas.el.width * 0.5
+        y / s + @canvas.el.height * 0.5
+      ]
 
-    $('#status-2').html "Scale: #{@canvas.scale / AU} AU"
+    scale_canvas: (r) ->
+      up_smooth = 0.95
+      down_smooth = 0.98
+      scale = Math.sqrt(r) * 2
 
-  draw: =>
-    @context.clearRect(0, 0, @canvas.el.width, @canvas.el.height)
-    $('#status').html "#{@ticks} iterations per draw, #{@time / 3600} hours per iteration, #{1000 / @sleep} fps - running for #{@total / (3600*24*365)} years."
+      if @canvas.scale is 0
+        @canvas.scale = scale
+      else
+        if scale > @canvas.scale
+          smooth = up_smooth
+        else
+          smooth = down_smooth
 
-    radius = 0
-    [x, y] = @convert 0, 0 # get center
-    [r, _] = @convert AU, AU
+        @canvas.scale = @canvas.scale * smooth  + scale * (1-smooth)
 
-    r -= x
-    @context.strokeStyle = "#ddc"
-    @context.font = "16pt arial"
-    for each in [1, 5, 10, 50]
-      @context.beginPath()
-      @context.arc x, y, r * each, 0, Math.PI * 2, false
-      @context.closePath()
-      @context.stroke()
+      $('#status-2').html "Scale: #{@canvas.scale / AU} AU"
 
-      @context.fillText "#{each} AU", x-20, y-r * each + 40
+    draw: =>
+      @context.clearRect(0, 0, @canvas.el.width, @canvas.el.height)
+      $('#status').html "#{@ticks} iterations per draw, #{@time / 3600} hours per iteration, #{1000 / @sleep} fps - running for #{@total / (3600*24*365)} years."
 
-    @context.font = "12pt arial"
-    for target in @objects
-      [x, y] = [target.o.x, target.o.y]
-      radius = Math.max(radius, x*x + y*y) if not target.no_scale
+      radius = 0
+      [x, y] = @convert 0, 0 # get center
+      [r, _] = @convert AU, AU
 
-      [x, y] = @convert(x, y)
-      @context.drawImage(
-          @img
-          x - target.size / 2
-          y - target.size / 2
-          target.size
-          target.size
-      )
-      @context.fillText target.name, x-25, y-10 if target.size > 5
+      r -= x
+      @context.strokeStyle = "#ddc"
+      @context.font = "16pt arial"
+      for each in [1, 5, 10, 50]
+        @context.beginPath()
+        @context.arc x, y, r * each, 0, Math.PI * 2, false
+        @context.closePath()
+        @context.stroke()
 
-    @scale_canvas radius
+        @context.fillText "#{each} AU", x-20, y-r * each + 40
 
-$ ->
-  orbiter = new Orbiter $('canvas')[0], $('#container')
-  orbiter.start()
-  $('canvas').click (e) ->
-    orbiter.toggle(e)
+      @context.font = "12pt arial"
+      for target in @objects
+        [x, y] = [target.o.x, target.o.y]
+        radius = Math.max(radius, x*x + y*y) if not target.no_scale
+
+        [x, y] = @convert(x, y)
+        @context.drawImage(
+            @img
+            x - target.size / 2
+            y - target.size / 2
+            target.size
+            target.size
+        )
+        @context.fillText target.name, x-25, y-10 if target.size > 5
+
+      @scale_canvas radius
+
+  return exports

@@ -1,0 +1,6 @@
+.*.sw*
+/jam/coffee-script
+/jam/cs
+/jam/jquery
+/jam/require.config.js
+/jam/require.js
