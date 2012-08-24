@@ -9,20 +9,43 @@ Description
 Installation
 ------------
 
+ * Serve files using a development webserver:
+
+     `python -m SimpleHTTPServer`
+
+     or any other means of serving up a directory.
+
+Development
+-----------
+
+Install node.js:
+
  * Install node.js (and npm if necessary):
 
    On Ubuntu:
 
      `sudo apt-get install nodejs`
 
+CoffeScript compilation:
+
+ * Install coffee-script node package:
+
+     `sudo npm install -g coffee-script`
+ 
+ * Compile coffee-scripts:
+
+     `coffee -wc *.coffee`
+
+Adding or upgrading dependencies using jamjs:
+
  * Install jamjs:
 
-     `npm install -g jamjs`
+     `sudo npm install -g jamjs`
 
- * Install orbtr.js dependencies:
+ * Install dependency:
 
-     `jam install`
+     `jam install <package>`
 
- * Serve files using a development webserver:
+ * Add changes to git and commit:
 
-     `python -m SimpleHTTPServer`
+     `git add jam && git commit`
