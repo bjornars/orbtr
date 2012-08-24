@@ -1,4 +1,4 @@
-define ['jquery', 'cs!orbtr'], ($, orbtr) ->
+define ['jquery', 'orbtr'], ($, orbtr) ->
 
   AU = orbtr.AU
   Vec = orbtr.Vec
@@ -85,7 +85,7 @@ define ['jquery', 'cs!orbtr'], ($, orbtr) ->
   ,
   ]
 
-  return ->
+  $ ->
     orbiter = new Orbiter $('canvas')[0], $('#container'), data
     orbiter.start()
     $('canvas').click (e) ->
